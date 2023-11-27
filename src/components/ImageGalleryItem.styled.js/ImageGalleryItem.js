@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState } from 'react';
 import {
   GalleryItemImage,
   GalleryItemWrapper,
@@ -33,50 +33,39 @@ const customStyles = {
 
 Modal.setAppElement('#root');
 
-export class ImageGalleryItem extends Component {
-  state = {
-    isModalOpen: false,
-    selectedImageId: null,
+export const ImageGalleryItem = ({ images }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImageId, setSelectedImageId] = useState(null);
+
+  const modalIsOpen = id => {
+    setIsModalOpen(true);
+    setSelectedImageId(id);
   };
 
-  modalIsOpen = id => {
-    this.setState({
-      isModalOpen: true,
-      selectedImageId: id,
-    });
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedImageId(null);
   };
 
-  closeModal = () => {
-    this.setState({
-      isModalOpen: false,
-      selectedImageId: null,
-    });
-  };
-
-  render() {
-    const { images } = this.props;
-    const { selectedImageId } = this.state;
-
-    return (
-      <>
-        {images.map(({ id, webformatURL, largeImageURL }) => (
-          <GalleryItemWrapper key={id}>
-            <GalleryItemImage
-              src={webformatURL}
-              alt="smallPhoto"
-              onClick={() => this.modalIsOpen(id)}
-            />
-            <Modal
-              isOpen={this.state.isModalOpen && selectedImageId === id}
-              onRequestClose={this.closeModal}
-              style={customStyles}
-              contentLabel="Big picture"
-            >
-              <img src={largeImageURL} alt="bigPhoto" />
-            </Modal>
-          </GalleryItemWrapper>
-        ))}
-      </>
-    );
-  }
-}
+  return (
+    <>
+      {images.map(({ id, webformatURL, largeImageURL }) => (
+        <GalleryItemWrapper key={id}>
+          <GalleryItemImage
+            src={webformatURL}
+            alt="smallPhoto"
+            onClick={() => modalIsOpen(id)}
+          />
+          <Modal
+            isOpen={isModalOpen && selectedImageId === id}
+            onRequestClose={closeModal}
+            style={customStyles}
+            contentLabel="Big picture"
+          >
+            <img src={largeImageURL} alt="bigPhoto" />
+          </Modal>
+        </GalleryItemWrapper>
+      ))}
+    </>
+  );
+};

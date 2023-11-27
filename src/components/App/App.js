@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { GlobalStyle } from '../GlobalStyled';
 import { ImageGallery } from '../ImageGallery/ImageGallery';
 import { Searchbar } from '../Searchbar/Searchbar';
@@ -7,81 +7,66 @@ import { HeroApp } from './App.styled';
 import { Button } from 'components/BtnLoadMore/BtnLoadMore';
 import { MagnifyingGlass } from 'react-loader-spinner';
 
-export class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    totalHits: null,
-    isLoading: false,
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalHits, setTotalHits] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
-    ) {
+  useEffect(() => {
+    if (query === '') {
+      return;
+    }
+
+    const initialFetchImage = async () => {
       try {
-        this.setState({ isLoading: true });
-        const { query, page } = this.state;
+        setIsLoading(true);
         const currentQuery = query.split('/').pop();
         const foundImage = await fetchImage({ currentQuery, page });
-        console.log(foundImage);
-        this.setState(prevState => {
-          return {
-            images: [...prevState.images, ...foundImage.hits],
-            totalHits: foundImage.totalHits,
-          };
-        });
+        setImages(prevImages => [...prevImages, ...foundImage.hits]);
+        setTotalHits(foundImage.totalHits);
       } catch (error) {
+        console.log(error);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
-    }
-  }
+    };
 
-  handleSubmit = evt => {
+    initialFetchImage();
+  }, [query, page]);
+
+  const handleSubmit = evt => {
     evt.preventDefault();
     const newQuery = evt.target.elements.imagesValue.value;
-    this.setState({
-      query: `${Date.now()}/${newQuery}`,
-      page: 1,
-      images: [],
-      totalHits: null,
-    });
+    setQuery(`${Date.now()}/${newQuery}`);
+    setPage(1);
+    setImages([]);
+    setTotalHits(null);
   };
 
-  loadMore = () => {
-    this.setState(prevState => {
-      return {
-        page: prevState.page + 1,
-      };
-    });
-  };
+  const loadMore = () => setPage(prevPage => prevPage + 1);
 
-  render() {
-    return (
-      <HeroApp>
-        <Searchbar submit={this.handleSubmit} />
-        {this.state.isLoading && (
-          <MagnifyingGlass
-            visible={true}
-            height="80"
-            width="80"
-            ariaLabel="MagnifyingGlass-loading"
-            wrapperStyle={{}}
-            wrapperClass="MagnifyingGlass-wrapper"
-            glassColor="#c0efff"
-            color="#e15b64"
-          />
-        )}
-        <ImageGallery images={this.state.images} />
-        {this.state.totalHits !== null &&
-          this.state.images.length < this.state.totalHits && (
-            <Button clickFunc={this.loadMore} />
-          )}
-        <GlobalStyle />
-      </HeroApp>
-    );
-  }
-}
+  return (
+    <HeroApp>
+      <Searchbar submit={handleSubmit} />
+      {isLoading && (
+        <MagnifyingGlass
+          visible={true}
+          height="80"
+          width="80"
+          ariaLabel="MagnifyingGlass-loading"
+          wrapperStyle={{}}
+          wrapperClass="MagnifyingGlass-wrapper"
+          glassColor="#c0efff"
+          color="#e15b64"
+        />
+      )}
+      <ImageGallery images={images} />
+      {totalHits !== null && images.length < totalHits && (
+        <Button clickFunc={loadMore} />
+      )}
+      <GlobalStyle />
+    </HeroApp>
+  );
+};
