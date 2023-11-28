@@ -15,7 +15,7 @@ export const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (query === '') {
+    if (query.trim() === '') {
       return;
     }
 
