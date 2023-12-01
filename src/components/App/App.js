@@ -38,7 +38,8 @@ export const App = () => {
 
   const handleSubmit = evt => {
     evt.preventDefault();
-    const newQuery = evt.target.elements.imagesValue.value;
+    const newQuery = evt.target.elements.imagesValue.value.trim();
+    if (!newQuery) return alert('Can not be empty');
     setQuery(`${Date.now()}/${newQuery}`);
     setPage(1);
     setImages([]);
